@@ -20,6 +20,13 @@ export interface ModelResponse {
 		promptTokenCount?: number;
 		candidatesTokenCount?: number;
 		totalTokenCount?: number;
+		/**
+		 * Portion of `promptTokenCount` served from Gemini's implicit or explicit
+		 * content cache. Present on responses where the request matched a cached
+		 * prefix; omitted otherwise. Used to surface caching effectiveness in the
+		 * token readout UI and debug logs.
+		 */
+		cachedContentTokenCount?: number;
 	};
 }
 
@@ -82,6 +89,14 @@ export interface ExtendedModelRequest extends BaseModelRequest {
 	availableTools?: ToolDefinition[];
 	/** Per-turn context injected into the system instruction: context file list, attachment paths, rendered file contents. */
 	perTurnContext?: string;
+	/**
+	 * Canonical, byte-stable string describing when the session started
+	 * (e.g. the raw `frontmatter.created` value). Rendered verbatim into the
+	 * system prompt's "This conversation started on ..." anchor. Must not be
+	 * re-formatted per request — doing so would break Gemini's implicit
+	 * prefix cache across tool-loop iterations and resumes.
+	 */
+	sessionStartedAt?: string;
 	inlineAttachments?: InlineDataPart[];
 	/** @deprecated Use inlineAttachments instead */
 	imageAttachments?: InlineDataPart[];

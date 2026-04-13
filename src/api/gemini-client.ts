@@ -156,10 +156,12 @@ export class GeminiClient implements ModelApi {
 					// Capture usageMetadata from chunks (usually present in last chunk)
 					if (chunk.usageMetadata) {
 						lastUsageMetadata = chunk.usageMetadata;
+						const meta = chunk.usageMetadata as any;
 						this.plugin?.logger.debug(
 							`[GeminiClient] Captured usageMetadata from streaming chunk: ` +
-								`prompt=${(chunk.usageMetadata as any).promptTokenCount}, ` +
-								`total=${(chunk.usageMetadata as any).totalTokenCount}`
+								`prompt=${meta.promptTokenCount}, ` +
+								`total=${meta.totalTokenCount}, ` +
+								`cached=${meta.cachedContentTokenCount ?? 0}`
 						);
 					}
 				}
@@ -245,7 +247,8 @@ export class GeminiClient implements ModelApi {
 				agentsMemory,
 				availableSkills,
 				extReq.projectInstructions,
-				extReq.perTurnContext ?? extReq.prompt
+				extReq.perTurnContext ?? extReq.prompt,
+				extReq.sessionStartedAt
 			);
 		} else {
 			// For BaseModelRequest, prompt is the full input
@@ -425,6 +428,7 @@ export class GeminiClient implements ModelApi {
 					promptTokenCount: (response.usageMetadata as any).promptTokenCount,
 					candidatesTokenCount: (response.usageMetadata as any).candidatesTokenCount,
 					totalTokenCount: (response.usageMetadata as any).totalTokenCount,
+					cachedContentTokenCount: (response.usageMetadata as any).cachedContentTokenCount,
 				},
 			}),
 		};
